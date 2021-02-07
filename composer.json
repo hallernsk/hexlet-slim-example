@@ -1,0 +1,13 @@
+{
+    "name": "vova/hexlet-slim-example",
+    "description": "slim-learning",
+    "type": "project",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "hallernsk",
+            "email": "haller@ngs.ru"
+        }
+    ],
+    "require": {}
+}
