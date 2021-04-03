@@ -1,0 +1,11 @@
+<table>
+  <?php foreach ($users as $user): ?>
+      <td>
+          <?= $user ?>
+      </td>
+  <?php endforeach ?>
+</table>
+<form action="/users" method="get">
+<input type="search" name="term" value="<?= htmlspecialchars($term) ?>" />
+<input type="submit" value="Search" />
+</form>

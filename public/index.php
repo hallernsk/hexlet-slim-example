@@ -17,6 +17,8 @@ $container->set('renderer', function () {
 $app = AppFactory::createFromContainer($container);
 $app->addErrorMiddleware(true, true, true);
 
+$users = ['mike', 'mishel', 'adel', 'keks', 'kamila'];
+
 $app->get('/users/{id}', function ($request, $response, $args) {
     $params = ['id' => $args['id'], 'nickname' => 'user-' . $args['id']];
     // Указанный путь считается относительно базовой директории для шаблонов, заданной на этапе конфигурации
@@ -32,8 +34,24 @@ $app->get('/', function ($request, $response) {
     // return $response->write('Welcome to Slim!');
 });
 
-$app->get('/users', function ($request, $response) {
-    return $response->write('GET /users');
+$app->get('/users', function ($request, $response) use ($users) {
+    $term = $request->getQueryParam('term');
+//    var_dump($term);
+    if (!is_null($term)) {
+        $selectedUsers = [];
+        foreach ($users as $user) {
+            $pos = strpos($user, $term);
+            if ($pos !== false) {
+                $selectedUsers[] = $user;
+            }
+        }
+    } else {
+        $selectedUsers = $users;
+    }
+
+    $params = ['users' => $selectedUsers, 'term' => $term];
+
+    return $this->get('renderer')->render($response, 'users/index.phtml', $params);
 });
 
 $app->post('/users', function ($request, $response) {

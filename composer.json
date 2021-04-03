@@ -15,5 +15,11 @@
         "slim/http": "^1.2",
         "slim/php-view": "^3.1",
         "php-di/php-di": "^6.3"
+    },
+    "require-dev": {
+        "squizlabs/php_codesniffer": "^3.5"
+    },
+    "scripts": {
+        "phpcs": "phpcs"
     }
 }

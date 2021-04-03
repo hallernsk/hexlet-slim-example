@@ -1,2 +1,2 @@
-<h1>Hello, <?= $id ?></h1>
-<h3>Your nickname: <?= $nickname ?></h3>
+<h1>Hello, <?= htmlspecialchars($id) ?></h1>
+<h3>Your nickname: <?= htmlspecialchars($nickname) ?></h3>
