@@ -36,17 +36,10 @@ $app->get('/', function ($request, $response) {
 
 $app->get('/users', function ($request, $response) use ($users) {
     $term = $request->getQueryParam('term');
-//    var_dump($term);
+    $selectedUsers = $users;
     if (!is_null($term)) {
-        $selectedUsers = [];
-        foreach ($users as $user) {
-            $pos = strpos($user, $term);
-            if ($pos !== false) {
-                $selectedUsers[] = $user;
-            }
-        }
-    } else {
-        $selectedUsers = $users;
+        $selectedUsers = array_filter($users, fn($user) =>
+        strpos($user, $term) !== false);
     }
 
     $params = ['users' => $selectedUsers, 'term' => $term];
