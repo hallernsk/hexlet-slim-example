@@ -16,6 +16,7 @@ $container->set('renderer', function () {
 
 $app = AppFactory::createFromContainer($container);
 $app->addErrorMiddleware(true, true, true);
+$router = $app->getRouteCollector()->getRouteParser();
 
 $users = ['mike', 'mishel', 'adel', 'keks', 'kamila'];
 $fileName = 'dataUsers';
@@ -27,13 +28,12 @@ $app->get('/users/new', function ($request, $response) {
     return $this->get('renderer')->render($response, "users/new.phtml", $params);
 });
 
-$app->post('/users', function ($request, $response) use ($fileName) {
+$app->post('/users', function ($request, $response) use ($fileName, $router) {
     $user = $request->getParsedBodyParam('user');
     $dataResult = json_decode(file_get_contents($fileName), true);
     $dataResult[count($dataResult) + 1] = $user;
     file_put_contents($fileName, json_encode($dataResult));
-
-    return $response->withRedirect('/users', 302);
+    return $response->withRedirect($router->urlFor('users'), 302);
 });
 
 $app->get('/users', function ($request, $response) use ($fileName) {
@@ -42,7 +42,7 @@ $app->get('/users', function ($request, $response) use ($fileName) {
         'users' => $usersAll
     ];
     return $this->get('renderer')->render($response, 'users/users.phtml', $params);
-});
+})->setName('users');
 
 $app->get('/users/{id}', function ($request, $response, $args) {
     $params = ['id' => $args['id'], 'nickname' => 'user-' . $args['id']];
