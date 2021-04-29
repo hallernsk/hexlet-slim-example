@@ -36,14 +36,6 @@ $app->post('/users', function ($request, $response) use ($fileName, $router) {
     return $response->withRedirect($router->urlFor('users'), 302);
 });
 
-$app->get('/users', function ($request, $response) use ($fileName) {
-    $usersAll = json_decode(file_get_contents($fileName), true);
-    $params = [
-        'users' => $usersAll
-    ];
-    return $this->get('renderer')->render($response, 'users/users.phtml', $params);
-})->setName('users');
-
 $app->get('/users/{id}', function ($request, $response, $args) {
     $params = ['id' => $args['id'], 'nickname' => 'user-' . $args['id']];
     // Указанный путь считается относительно базовой директории для шаблонов, заданной на этапе конфигурации
@@ -72,9 +64,17 @@ $app->get('/', function ($request, $response) {
     return $this->get('renderer')->render($response, 'users/index.phtml', $params);
 }); */
 
+$app->get('/users', function ($request, $response) use ($fileName) {
+    $usersAll = json_decode(file_get_contents($fileName), true);
+    $params = [
+        'users' => $usersAll
+    ];
+    return $this->get('renderer')->render($response, 'users/index.phtml', $params);
+})->setName('users');
+
 //$app->post('/users', function ($request, $response) {
 //    return $response->withStatus(302);
-//});
+//}); */
 
 $app->get('/courses/{id}', function ($request, $response, array $args) {
     $id = $args['id'];

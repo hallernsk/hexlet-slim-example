@@ -1,11 +1,19 @@
+<p><a href="/users/new">Добавить пользователя</a></p>
 <table>
-  <?php foreach ($users as $user): ?>
+  <?php foreach ($users as $key => $user): ?>
+    <tr>
       <td>
-          <?= $user ?>
+          <?= $key ?>
       </td>
+      <td>
+          <?= $user['nickname'] ?>
+      </td>
+      <td>
+          <?= $user['email'] ?>
+      </td>
+      <td>
+          <?= $user['id'] ?>
+      </td>
+    </tr>
   <?php endforeach ?>
 </table>
-<form action="/users" method="get">
-<input type="search" name="term" value="<?= htmlspecialchars($term) ?>" />
-<input type="submit" value="Search" />
-</form>
