@@ -5,11 +5,18 @@ require __DIR__ . '/../vendor/autoload.php';
 
 use Slim\Factory\AppFactory;
 use DI\Container;
+use Ramsey\Uuid\Uuid;
+
+session_start();
 
 $container = new Container();
 $container->set('renderer', function () {
     // Параметром передается базовая директория, в которой будут храниться шаблоны
     return new \Slim\Views\PhpRenderer(__DIR__ . '/../templates');
+});
+
+$container->set('flash', function () {
+    return new \Slim\Flash\Messages();
 });
 
 //$app = AppFactory::create();
@@ -29,7 +36,9 @@ $app->get('/users/new', function ($request, $response) {
 });
 
 $app->post('/users', function ($request, $response) use ($fileName, $router) {
+    $this->get('flash')->addMessage('success', 'Пользователь был создан.');
     $user = $request->getParsedBodyParam('user');
+    $user['id'] = Uuid::uuid4();
     $dataResult = json_decode(file_get_contents($fileName), true);
     $dataResult[count($dataResult) + 1] = $user;
     file_put_contents($fileName, json_encode($dataResult));
@@ -65,9 +74,11 @@ $app->get('/', function ($request, $response) {
 }); */
 
 $app->get('/users', function ($request, $response) use ($fileName) {
+    $message = $this->get('flash')->getMessages();
     $usersAll = json_decode(file_get_contents($fileName), true);
     $params = [
-        'users' => $usersAll
+        'users' => $usersAll,
+        'flash' => $message
     ];
     return $this->get('renderer')->render($response, 'users/index.phtml', $params);
 })->setName('users');
