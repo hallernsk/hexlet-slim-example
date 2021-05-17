@@ -45,11 +45,16 @@ $app->post('/users', function ($request, $response) use ($fileName, $router) {
     return $response->withRedirect($router->urlFor('users'), 302);
 });
 
-$app->get('/users/{id}', function ($request, $response, $args) {
-    $params = ['id' => $args['id'], 'nickname' => 'user-' . $args['id']];
+$app->get('/users/{id}', function ($request, $response, $args) use ($fileName) {
+//    $params = ['id' => $args['id'], 'nickname' => 'user-' . $args['id']];
     // Указанный путь считается относительно базовой директории для шаблонов, заданной на этапе конфигурации
     // $this доступен внутри анонимной функции благодаря https://php.net/manual/ru/closure.bindto.php
     // $this в Slim это контейнер зависимостей
+    $id = $args['id'];
+    $usersAll = json_decode(file_get_contents($fileName), true);
+    $userReq = array_filter($usersAll, fn($user) => $user['id'] === $id);
+    $userRequest = reset($userReq);
+    $params = ['userRequest' => $userRequest];
     return $this->get('renderer')->render($response, 'users/show.phtml', $params);
 })->setName('user');
 

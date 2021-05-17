@@ -11,16 +11,7 @@
   <?php foreach ($users as $key => $user): ?>
     <tr>
       <td>
-          <?= $key ?>
-      </td>
-      <td>
-          <?= $user['nickname'] ?>
-      </td>
-      <td>
-          <?= $user['email'] ?>
-      </td>
-      <td>
-          <?= $user['id'] ?>
+      <a href="/users/<?= $user['id'] ?>"><?= htmlspecialchars($user['nickname']) ?></a>
       </td>
     </tr>
   <?php endforeach ?>

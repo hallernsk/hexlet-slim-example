@@ -1,2 +1,7 @@
-<h1>Hello, <?= htmlspecialchars($id) ?></h1>
-<h3>Your nickname: <?= htmlspecialchars($nickname) ?></h3>
+<a href="/users">Пользователи</a>
+
+<?php foreach ($userRequest as $key => $value): ?>
+  <div>
+      <?= $key ?>: <?= $value ?>
+  </div>
+<?php endforeach ?>
