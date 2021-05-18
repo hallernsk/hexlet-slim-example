@@ -30,53 +30,47 @@ $fileName = 'dataUsers';
 
 $app->get('/users/new', function ($request, $response) {
     $params = [
-        'user' => ['nickname' => '', 'email' => '', 'id' => '']
+        'user' => ['nickname' => '', 'email' => '', 'id' => ''],
+        'errors' => []
     ];
     return $this->get('renderer')->render($response, "users/new.phtml", $params);
 });
 
 $app->post('/users', function ($request, $response) use ($fileName, $router) {
-    $this->get('flash')->addMessage('success', 'Пользователь был создан.');
+    $this->get('flash')->addMessage('success', 'Пользователь был успешно создан.');
     $user = $request->getParsedBodyParam('user');
-    $user['id'] = Uuid::uuid4();
-    $dataResult = json_decode(file_get_contents($fileName), true);
-    $dataResult[count($dataResult) + 1] = $user;
-    file_put_contents($fileName, json_encode($dataResult));
-    return $response->withRedirect($router->urlFor('users'), 302);
+
+    $errors = validate($user);
+    if (count($errors) === 0) {
+        $user['id'] = Uuid::uuid4();
+        $dataResult = json_decode(file_get_contents($fileName), true);
+        $dataResult[count($dataResult) + 1] = $user;
+        file_put_contents($fileName, json_encode($dataResult));
+        return $response->withRedirect($router->urlFor('users'), 302);
+    }
+
+    $params = [
+        'user' => $user,
+        'errors' => $errors
+    ];
+
+    $response = $response->withStatus(422);
+    return $this->get('renderer')->render($response, 'users/new.phtml', $params);
 });
 
 $app->get('/users/{id}', function ($request, $response, $args) use ($fileName) {
-//    $params = ['id' => $args['id'], 'nickname' => 'user-' . $args['id']];
-    // Указанный путь считается относительно базовой директории для шаблонов, заданной на этапе конфигурации
-    // $this доступен внутри анонимной функции благодаря https://php.net/manual/ru/closure.bindto.php
-    // $this в Slim это контейнер зависимостей
     $id = $args['id'];
     $usersAll = json_decode(file_get_contents($fileName), true);
-    $userReq = array_filter($usersAll, fn($user) => $user['id'] === $id);
-    $userRequest = reset($userReq);
-    $params = ['userRequest' => $userRequest];
+    $userSelected = array_filter($usersAll, fn($user) => $user['id'] === $id);
+    $userRequired = reset($userSelected);
+    $params = ['userRequired' => $userRequired];
     return $this->get('renderer')->render($response, 'users/show.phtml', $params);
 })->setName('user');
 
 $app->get('/', function ($request, $response) {
     $response->getBody()->write('Welcome to Slim!');
     return $response;
-    // Благодаря пакету slim/http этот же код можно записать короче
-    // return $response->write('Welcome to Slim!');
 })->setName('/');
-
-/*$app->get('/users', function ($request, $response) use ($users) {
-    $term = $request->getQueryParam('term');
-    $selectedUsers = $users;
-    if (!is_null($term)) {
-        $selectedUsers = array_filter($users, fn($user) =>
-        strpos($user, $term) !== false);
-    }
-
-    $params = ['users' => $selectedUsers, 'term' => $term];
-
-    return $this->get('renderer')->render($response, 'users/index.phtml', $params);
-}); */
 
 $app->get('/users', function ($request, $response) use ($fileName) {
     $message = $this->get('flash')->getMessages();
@@ -88,15 +82,23 @@ $app->get('/users', function ($request, $response) use ($fileName) {
     return $this->get('renderer')->render($response, 'users/index.phtml', $params);
 })->setName('users');
 
-//$app->post('/users', function ($request, $response) {
-//    return $response->withStatus(302);
-//}); */
-
 $app->get('/courses/{id}', function ($request, $response, array $args) {
     $id = $args['id'];
     return $response->write("Course id: {$id}");
 });
 
+function validate(array $user)
+{
+    $errors = [];
+    if ($user['nickname'] === '') {
+        $errors['nickname'] = "Надо заполнить!";
+    }
 
+    if ($user['email'] === '') {
+        $errors['email'] = "Заполнить!!!";
+    }
+
+    return $errors;
+}
 
 $app->run();
