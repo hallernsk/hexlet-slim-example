@@ -1,0 +1,18 @@
+<div>
+    <label>
+      Nickname*
+      <input type="text" name="user[nickname]" value="<?= htmlspecialchars($userData['nickname'] ?? ''); ?>">
+    </label>
+    <?php if (isset($errors['nickname'])): ?>
+            <div><?= $errors['nickname'] ?></div>
+        <?php endif ?>
+  </div>
+  <div>
+    <label>
+      Email*
+      <input type="email" name="user[email]" value="<?= htmlspecialchars($userData['email'] ?? ''); ?>">
+    </label>
+    <?php if (isset($errors['email'])): ?>
+            <div><?= $errors['email'] ?></div>
+        <?php endif ?>
+</div>

@@ -1,0 +1,7 @@
+<a href="/users">Пользователи</a>
+<!-- templates/users/edit.phtml -->
+<form action="/users/<?= $id ?>" method="post">
+<input type="hidden" name="_METHOD" value="PATCH">  
+  <?php require '_form.phtml' ?>
+  <input type="submit" value="Update">
+</form>
