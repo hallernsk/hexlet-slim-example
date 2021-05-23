@@ -107,12 +107,44 @@ $app->delete('/users/{id}', function ($request, $response, array $args) use ($fi
     return $response->withRedirect($url);
 });
 
+// 22.Сессия (аутентификация) 
 $app->get('/', function ($request, $response) {
-    $response->getBody()->write('Welcome to Slim!');
-    return $response;
-    // Благодаря пакету slim/http этот же код можно записать короче
-    // return $response->write('Welcome to Slim!');
+
+    $messages = $this->get('flash')->getMessages();
+         $params = [
+            'correctUser' => $_SESSION['user'] ?? null, 
+            'flash' => $messages
+            ];
+         return $this->get('renderer')->render($response, 'users/enter.phtml', $params);
+
 })->setName('/');
+
+$app->post('/session', function ($request, $response) use ($fileName) {
+    $inputEmail = $request->getParsedBodyParam('email');
+    $usersAll = json_decode(file_get_contents($fileName), true);
+
+    $testedUser = array_filter($usersAll, function ($user) use ($inputEmail) {
+        if ($user['email'] == $inputEmail) {
+            return $user;
+        }
+    });
+    $correctUser = reset($testedUser);
+
+    if ($correctUser) {
+        $_SESSION['user'] = $correctUser;        
+
+    } else {
+        $this->get('flash')->addMessage('error', 'Введен неверный E-mail');
+    }
+
+    return $response->withRedirect('/');     
+});
+
+$app->delete('/session', function ($request, $response) {
+    $_SESSION = [];
+    session_destroy();
+    return $response->withRedirect('/users');
+});
 
 $app->get('/users', function ($request, $response) use ($fileName) {
     $message = $this->get('flash')->getMessages();
@@ -123,6 +155,7 @@ $app->get('/users', function ($request, $response) use ($fileName) {
     ];
     return $this->get('renderer')->render($response, 'users/index.phtml', $params);
 })->setName('users');
+
 
 function validate(array $user)
 {
