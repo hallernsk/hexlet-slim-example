@@ -27,6 +27,7 @@ $router = $app->getRouteCollector()->getRouteParser();
 
 $fileName = 'dataUsers';
 
+// создание нового пользователя (вывод формы)
 $app->get('/users/new', function ($request, $response) {
     $params = [
         'user' => ['nickname' => '', 'email' => ''],
@@ -35,6 +36,7 @@ $app->get('/users/new', function ($request, $response) {
     return $this->get('renderer')->render($response, "users/new.phtml", $params);
 });
 
+// обработка формы создания пользователя
 $app->post('/users', function ($request, $response) use ($fileName, $router) {
     $user = $request->getParsedBodyParam('user');
     $errors = validate($user);
@@ -48,10 +50,9 @@ $app->post('/users', function ($request, $response) use ($fileName, $router) {
         return $this->get('renderer')->render($response, 'users/new.phtml', $params);
     }
 
-    $id = Uuid::uuid4();
+    $id = (string)Uuid::uuid4();
     $dataResult = json_decode(file_get_contents($fileName), true);
-    $dataResult["$id"] = $user;  // если без " ", юзер не добавляется (???)
-    var_dump($dataResult);
+    $dataResult[$id] = $user;
     file_put_contents($fileName, json_encode($dataResult));
     $this->get('flash')->addMessage('success', 'Пользователь был успешно создан.');
     return $response->withRedirect($router->urlFor('users'), 302);
@@ -107,16 +108,15 @@ $app->delete('/users/{id}', function ($request, $response, array $args) use ($fi
     return $response->withRedirect($url);
 });
 
-// 22.Сессия (аутентификация) 
+// 22.Сессия (аутентификация)
 $app->get('/', function ($request, $response) {
 
     $messages = $this->get('flash')->getMessages();
          $params = [
-            'correctUser' => $_SESSION['user'] ?? null, 
+            'correctUser' => $_SESSION['user'] ?? null,
             'flash' => $messages
             ];
          return $this->get('renderer')->render($response, 'users/enter.phtml', $params);
-
 })->setName('/');
 
 $app->post('/session', function ($request, $response) use ($fileName) {
@@ -131,13 +131,12 @@ $app->post('/session', function ($request, $response) use ($fileName) {
     $correctUser = reset($testedUser);
 
     if ($correctUser) {
-        $_SESSION['user'] = $correctUser;        
-
+        $_SESSION['user'] = $correctUser;
     } else {
         $this->get('flash')->addMessage('error', 'Введен неверный E-mail');
     }
 
-    return $response->withRedirect('/');     
+    return $response->withRedirect('/');
 });
 
 $app->delete('/session', function ($request, $response) {
@@ -146,6 +145,7 @@ $app->delete('/session', function ($request, $response) {
     return $response->withRedirect('/users');
 });
 
+// все пользователи
 $app->get('/users', function ($request, $response) use ($fileName) {
     $message = $this->get('flash')->getMessages();
     $usersAll = json_decode(file_get_contents($fileName), true);
@@ -156,16 +156,15 @@ $app->get('/users', function ($request, $response) use ($fileName) {
     return $this->get('renderer')->render($response, 'users/index.phtml', $params);
 })->setName('users');
 
-
 function validate(array $user)
 {
     $errors = [];
     if ($user['nickname'] === '') {
-        $errors['nickname'] = "Надо заполнить!";
+        $errors['nickname'] = "Необходимо заполнить!";
     }
 
     if ($user['email'] === '') {
-        $errors['email'] = "Заполнить!!!";
+        $errors['email'] = "Необходимо заполнить!";
     }
 
     return $errors;
