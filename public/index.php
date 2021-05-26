@@ -122,7 +122,7 @@ $app->get('/', function ($request, $response) {
 $app->post('/session', function ($request, $response) use ($fileName) {
     $inputEmail = $request->getParsedBodyParam('email');
     $usersAll = json_decode(file_get_contents($fileName), true);
-
+    print_r($usersAll);
     $testedUser = array_filter($usersAll, function ($user) use ($inputEmail) {
         if ($user['email'] == $inputEmail) {
             return $user;
@@ -136,7 +136,7 @@ $app->post('/session', function ($request, $response) use ($fileName) {
         $this->get('flash')->addMessage('error', 'Введен неверный E-mail');
     }
 
-    return $response->withRedirect('/');
+//    return $response->withRedirect('/');
 });
 
 $app->delete('/session', function ($request, $response) {
