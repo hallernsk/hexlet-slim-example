@@ -8,8 +8,7 @@ use Slim\Middleware\MethodOverrideMiddleware;
 use DI\Container;
 use Ramsey\Uuid\Uuid;
 
-//const FILE_NAME = "__DIR__ . '/../' . dataUsers";
-const FILE_NAME = '__DIR__ . /../dataUsers';
+const FILE_NAME = __DIR__ . '/../dataUsers';
 $fileName = FILE_NAME;
 
 session_start();
