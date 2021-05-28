@@ -8,6 +8,10 @@ use Slim\Middleware\MethodOverrideMiddleware;
 use DI\Container;
 use Ramsey\Uuid\Uuid;
 
+//const FILE_NAME = "__DIR__ . '/../' . dataUsers";
+const FILE_NAME = '__DIR__ . /../dataUsers';
+$fileName = FILE_NAME;
+
 session_start();
 
 $container = new Container();
@@ -24,8 +28,6 @@ $app = AppFactory::createFromContainer($container);
 $app->add(MethodOverrideMiddleware::class);
 $app->addErrorMiddleware(true, true, true);
 $router = $app->getRouteCollector()->getRouteParser();
-
-$fileName = 'dataUsers';
 
 // создание нового пользователя (вывод формы)
 $app->get('/users/new', function ($request, $response) {
@@ -51,9 +53,9 @@ $app->post('/users', function ($request, $response) use ($fileName, $router) {
     }
 
     $id = (string)Uuid::uuid4();
-    $dataResult = json_decode(file_get_contents($fileName), true);
+    $dataResult = readUsersFile(FILE_NAME);
     $dataResult[$id] = $user;
-    file_put_contents($fileName, json_encode($dataResult));
+    writeUsersFile(FILE_NAME, $dataResult);
     $this->get('flash')->addMessage('success', 'Пользователь был успешно создан.');
     return $response->withRedirect($router->urlFor('users'), 302);
 });
@@ -61,7 +63,7 @@ $app->post('/users', function ($request, $response) use ($fileName, $router) {
 // 21.CRUD:Обновление (вывод формы обновления)
 $app->get('/users/{id}/edit', function ($request, $response, array $args) use ($fileName, $router) {
     $id = $args['id'];
-    $usersAll = json_decode(file_get_contents($fileName), true);
+    $usersAll = readUsersFile(FILE_NAME);
     $userSelected = $usersAll[$id];
     $params = [
         'id' => $id,
@@ -89,9 +91,9 @@ $app->patch('/users/{id}', function ($request, $response, array $args) use ($fil
         return $this->get('renderer')->render($response, 'users/edit.phtml', $params);
     }
 
-    $usersAll = json_decode(file_get_contents($fileName), true);
+    $usersAll = readUsersFile(FILE_NAME);
     $usersAll[$id] = $userUpdated;
-    file_put_contents($fileName, json_encode($usersAll));
+    writeUsersFile(FILE_NAME, $usersAll);
     $this->get('flash')->addMessage('success', 'Пользователь был обновлен');
     $url = $router->urlFor('users');
     return $response->withRedirect($url);
@@ -100,9 +102,9 @@ $app->patch('/users/{id}', function ($request, $response, array $args) use ($fil
 // 22.CRUD:Удаление (обработка кнопки формы удаления[в шаблоне edit.phtml])
 $app->delete('/users/{id}', function ($request, $response, array $args) use ($fileName, $router) {
     $id = $args['id'];
-    $usersAll = json_decode(file_get_contents($fileName), true);
+    $usersAll = readUsersFile(FILE_NAME);
     unset($usersAll[$id]);
-    file_put_contents($fileName, json_encode($usersAll));
+    writeUsersFile(FILE_NAME, $usersAll);
     $this->get('flash')->addMessage('success', 'Пользователь был удален');
     $url = $router->urlFor('users');
     return $response->withRedirect($url);
@@ -121,7 +123,7 @@ $app->get('/', function ($request, $response) {
 
 $app->post('/session', function ($request, $response) use ($fileName) {
     $inputEmail = $request->getParsedBodyParam('email');
-    $usersAll = json_decode(file_get_contents($fileName), true);
+    $usersAll = readUsersFile(FILE_NAME);
 //    print_r($usersAll);
     $testedUser = array_filter($usersAll, function ($user) use ($inputEmail) {
         if ($user['email'] == $inputEmail) {
@@ -148,7 +150,7 @@ $app->delete('/session', function ($request, $response) {
 // все пользователи
 $app->get('/users', function ($request, $response) use ($fileName) {
     $message = $this->get('flash')->getMessages();
-    $usersAll = json_decode(file_get_contents($fileName), true);
+    $usersAll = readUsersFile(FILE_NAME);
     $params = [
         'users' => $usersAll,
         'flash' => $message
@@ -168,6 +170,16 @@ function validate(array $user)
     }
 
     return $errors;
+}
+
+function readUsersFile(string $fileName): array
+{
+    return json_decode(file_get_contents($fileName), true);
+}
+
+function writeUsersFile(string $fileName, array $data)
+{
+    file_put_contents($fileName, json_encode($data));
 }
 
 $app->run();
