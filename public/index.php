@@ -9,7 +9,6 @@ use DI\Container;
 use Ramsey\Uuid\Uuid;
 
 const FILE_NAME = __DIR__ . '/../dataUsers';
-$fileName = FILE_NAME;
 
 session_start();
 
@@ -38,7 +37,7 @@ $app->get('/users/new', function ($request, $response) {
 });
 
 // обработка формы создания пользователя
-$app->post('/users', function ($request, $response) use ($fileName, $router) {
+$app->post('/users', function ($request, $response) use ($router) {
     $user = $request->getParsedBodyParam('user');
     $errors = validate($user);
     if (count($errors) !== 0) {
@@ -60,7 +59,7 @@ $app->post('/users', function ($request, $response) use ($fileName, $router) {
 });
 
 // 21.CRUD:Обновление (вывод формы обновления)
-$app->get('/users/{id}/edit', function ($request, $response, array $args) use ($fileName, $router) {
+$app->get('/users/{id}/edit', function ($request, $response, array $args) use ($router) {
     $id = $args['id'];
     $usersAll = readUsersFile(FILE_NAME);
     $userSelected = $usersAll[$id];
@@ -73,7 +72,7 @@ $app->get('/users/{id}/edit', function ($request, $response, array $args) use ($
 })->setName('editPost');
 
 // 21.CRUD:Обновление (обработка формы редактирования)
-$app->patch('/users/{id}', function ($request, $response, array $args) use ($fileName, $router) {
+$app->patch('/users/{id}', function ($request, $response, array $args) use ($router) {
     $id = $args['id'];
 
     $userUpdated = $request->getParsedBodyParam('user');
@@ -99,7 +98,7 @@ $app->patch('/users/{id}', function ($request, $response, array $args) use ($fil
 });
 
 // 22.CRUD:Удаление (обработка кнопки формы удаления[в шаблоне edit.phtml])
-$app->delete('/users/{id}', function ($request, $response, array $args) use ($fileName, $router) {
+$app->delete('/users/{id}', function ($request, $response, array $args) use ($router) {
     $id = $args['id'];
     $usersAll = readUsersFile(FILE_NAME);
     unset($usersAll[$id]);
@@ -120,10 +119,9 @@ $app->get('/', function ($request, $response) {
          return $this->get('renderer')->render($response, 'users/enter.phtml', $params);
 })->setName('/');
 
-$app->post('/session', function ($request, $response) use ($fileName) {
+$app->post('/session', function ($request, $response) {
     $inputEmail = $request->getParsedBodyParam('email');
     $usersAll = readUsersFile(FILE_NAME);
-//    print_r($usersAll);
     $testedUser = array_filter($usersAll, function ($user) use ($inputEmail) {
         if ($user['email'] == $inputEmail) {
             return $user;
@@ -147,7 +145,7 @@ $app->delete('/session', function ($request, $response) {
 });
 
 // все пользователи
-$app->get('/users', function ($request, $response) use ($fileName) {
+$app->get('/users', function ($request, $response) {
     $message = $this->get('flash')->getMessages();
     $usersAll = readUsersFile(FILE_NAME);
     $params = [
@@ -173,6 +171,9 @@ function validate(array $user)
 
 function readUsersFile(string $fileName): array
 {
+    if (!file_exists($fileName)) {
+        throw new \Exception("Incorrect path to file: $fileName");
+    }
     return json_decode(file_get_contents($fileName), true);
 }
 
